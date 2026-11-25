@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+ <link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0878d1">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AquaMap — Карта водоматів</title>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #eef7ff;
+            color: #17324d;
+            transition: background 0.2s, color 0.2s;
+        }
+        body.dark { background: #142333; color: white; }
+
+        header {
+            background: linear-gradient(120deg, #087cc1, #07558e);
+            color: white;
+            padding: 15px 22px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .brand { display: flex; align-items: center; gap: 12px; }
+        .brand h1 { margin: 0; font-size: 27px; }
+        .brand small { display: block; font-size: 12px; opacity: 0.85; margin-top: 3px; }
+        .logo { width: 48px; height: 48px; }
+
+        .content { padding: 18px; max-width: 1500px; margin: auto; }
+        .intro { margin-bottom: 15px; }
+        .intro h2 { margin-bottom: 5px; }
+
+        #map {
+            height: 65vh;
+            min-height: 380px;
+            width: 100%;
+            border-radius: 15px;
+            border: 2px solid #c5e4f8;
+            z-index: 1;
+        }
+
+        .info {
+            background: white;
+            padding: 16px;
+            border-radius: 12px;
+            margin: 15px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+        body.dark .info { background: #26394c; color: white; }
+
+        button {
+            padding: 11px 15px;
+            background: #087cc1;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        button:hover { opacity: 0.85; }
+        .theme-button { background: white; color: #07558e; }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #b8cbd8;
+            border-radius: 8px;
+            font-size: 16px;
+            margin: 8px 0;
+        }
+        body.dark input {
+            background: #172b3d;
+            color: white;
+            border-color: #526b80;
+        }
+
+        .machine-result { border-bottom: 1px solid #ccc; padding: 12px 0; }
+        .machine-result button { margin-top: 5px; }
+        .legend {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin: 15px 0;
+            font-weight: bold;
+        }
+        .leaflet-tooltip {
+            color: black !important;
+            background: white !important;
+            border: 1px solid #ccc !important;
+            font-weight: bold;
+        }
+        body.dark .leaflet-tooltip {
+            color: white !important;
+            background: #26394c !important;
+            border: 1px solid white !important;
+        }
+        .footer { text-align: center; padding: 20px; opacity: 0.7; font-size: 13px; }
+/* Картка водомата */
+.machine-card {
+    position: relative;
+    border-radius: 14px;
+    padding: 18px;
+    background: linear-gradient(135deg, #ffffff, #edf7ff);
+    border: 1px solid #c5e4f8;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+}
+
+body.dark .machine-card {
+    background: linear-gradient(135deg, #26394c, #1c3043);
+    border-color: #526b80;
+}
+
+.machine-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.machine-card-code {
+    font-size: 24px;
+    font-weight: bold;
+    margin: 12px 0;
+}
+
+.machine-status {
+    padding: 7px 12px;
+    border-radius: 20px;
+    color: white;
+    font-weight: bold;
+    font-size: 13px;
+}
+
+.machine-detail {
+    padding: 10px 0;
+    border-bottom: 1px solid #d5e4ed;
+}
+
+body.dark .machine-detail {
+    border-color: #526b80;
+}
+
+.machine-detail:last-child {
+    border-bottom: none;
+}
+
+.machine-close {
+    background: #64748b;
+    padding: 8px 12px;
+}
+        @media (max-width: 600px) {
+            .content { padding: 10px; }
+            #map { height: 60vh; min-height: 350px; }
+            .brand h1 { font-size: 23px; }
+        }
+    </style>
+</head>
+
+<body>
+<header>
+    <div class="brand">
+        <svg class="logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <path d="M50 5 C37 25 17 44 17 62 C17 82 31 95 50 95 C69 95 83 82 83 62 C83 44 63 25 50 5Z" fill="white"/>
+            <path d="M50 20 C41 35 29 48 29 62 C29 75 38 84 50 84 C62 84 71 75 71 62 C71 48 59 35 50 20Z" fill="#087cc1"/>
+            <path d="M35 59 Q43 51 51 59 T67 59" fill="none" stroke="white" stroke-width="5" stroke-linecap="round"/>
+            <path d="M35 70 Q43 62 51 70 T67 70" fill="none" stroke="white" stroke-width="4" stroke-linecap="round"/>
+        </svg>
+        <div>
+            <h1>AquaMap</h1>
+            <small>Знайди воду поруч</small>
+        </div>
+    </div>
+    <button class="theme-button" onclick="changeTheme()">🌙 Змінити тему</button>
+</header>
+
+<div class="content">
+    <div class="intro">
+        <h2>Карта водоматів України</h2>
+        <p>Знаходь водомати та перевіряй наявність води!</p>
+    </div>
+
+    <div class="legend">
+        <span>🟢 Вода є</span>
+        <span>🔴 Води немає</span>
+        <span>🟠 Немає зв'язку</span>
+        <span>⚪ Невідомо</span>
+    </div>
+
+    <div class="info">
+        <h3>📍 Знайти найближчі водомати</h3>
+        <input type="text" id="userAddress" placeholder="Введіть адресу...">
+        <p>Радіус пошуку: <b>5 км</b></p>
+        <button onclick="findWaterMachines()">🔍 Знайти водомати</button>
+        <div id="searchResults"></div>
+    </div>
+
+    <div id="map"></div>
+
+    <div class="info" id="info">
+        <h3>Інформація про водомат</h3>
+        <p>Натисни на позначку на карті.</p>
+    </div>
+</div>
+
+<div class="footer">AquaMap © 2026 · Карта водоматів</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+// ====================================
+// SUPABASE
+// ====================================
+const SUPABASE_URL = 'https://cxaguswaaaitgsapmdqf.supabase.co';
+
+// Publishable key призначений для використання у браузері.
+// Service Role key або секрет water_heartbeat сюди НЕ вставляй.
+const SUPABASE_KEY = 'sb_publishable_PvS6ATQj8DDubQkBBu5Pjg_UNulBubZ';
+
+const aquaClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ====================================
+// КАРТА
+// ====================================
+const map = L.map('map').setView([48.3, 25.9], 9);
+
+const streetMap = L.tileLayer(
+    'https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png',
+    {
+        attribution: '&copy; OpenStreetMap contributors, HOT',
+        maxZoom: 19
+    }
+);
+
+const satelliteMap = L.tileLayer(
+    'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+    {
+        attribution: 'Tiles &copy; Esri',
+        maxZoom: 19
+    }
+);
+
+const labelsLayer = L.tileLayer(
+    'https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
+    {
+        attribution: 'Labels &copy; Esri',
+        maxZoom: 19
+    }
+);
+
+streetMap.addTo(map);
+
+L.control.layers({
+    '🗺️ Звичайна карта': streetMap,
+    '🛰️ Супутник': satelliteMap
+}).addTo(map);
+
+map.on('baselayerchange', function(event) {
+    if (event.layer === satelliteMap) {
+        labelsLayer.addTo(map);
+    } else {
+        map.removeLayer(labelsLayer);
+    }
+});
+
+// ====================================
+// ШАРИ ТА ЗМІННІ
+// ====================================
+const machineMarkers = L.layerGroup().addTo(map);
+const searchLayer = L.layerGroup().addTo(map);
+
+let waterMachines = [];
+let loadingMachines = false;
+let selectedMachineCode = null;
+// ====================================
+// СТАТУС ВОДОМАТА
+// ====================================
+
+function getMachineStatus(machine) {
+    const level = Number(machine.water_level);
+
+    if (
+        machine.water_level !== null &&
+        machine.water_level !== undefined &&
+        machine.water_level !== '' &&
+        Number.isFinite(level)
+    ) {
+        return level < 5 ? 'empty' : 'available';
+    }
+
+    if (machine.status === 'available') return 'available';
+    if (machine.status === 'empty') return 'empty';
+
+    if (!machine.last_seen_at) return 'unknown';
+
+    const lastSeen = new Date(machine.last_seen_at).getTime();
+
+    if (!Number.isFinite(lastSeen)) return 'unknown';
+
+    if (Date.now() - lastSeen > 5 * 60 * 1000) {
+        return 'offline';
+    }
+
+    return 'unknown';
+}
+
+function getStatusInfo(status) {
+    const statuses = {
+        available: { label: 'Вода є', color: '#16a34a' },
+        empty: { label: 'Води немає', color: '#dc2626' },
+        offline: { label: 'Немає зв’язку', color: '#f97316' },
+        unknown: { label: 'Невідомо', color: '#6b7280' }
+    };
+
+    return statuses[status] || statuses.unknown;
+}
+
+// ====================================
+// ПОЗНАЧКА ВОДОМАТА
+// ====================================
+function showMachineInfo(machine) {
+    selectedMachineCode = machine.machine_code;
+    const status = getMachineStatus(machine);
+    const statusInfo = getStatusInfo(status);
+
+    const lastSeen = machine.last_seen_at
+        ? new Date(machine.last_seen_at)
+        : null;
+
+    const lastSeenText = lastSeen && !isNaN(lastSeen.getTime())
+        ? lastSeen.toLocaleString('uk-UA')
+        : 'Немає даних';
+
+   const hasWaterLevel =
+    machine.water_level !== null &&
+    machine.water_level !== undefined &&
+    machine.water_level !== '' &&
+    Number.isFinite(Number(machine.water_level));
+
+const waterLevel = hasWaterLevel
+    ? Math.max(0, Math.min(100, Number(machine.water_level)))
+    : null;
+
+const waterColor = waterLevel !== null && waterLevel < 5
+    ? '#dc2626'
+    : '#16a34a';
+
+    document.getElementById('info').innerHTML = `
+        <div class="machine-card">
+
+            <div class="machine-card-header">
+                <h3>💧 Інформація про водомат</h3>
+
+                <span class="machine-status"
+                    style="background:${statusInfo.color}">
+                    ${statusInfo.label}
+                </span>
+            </div>
+
+            <div class="machine-card-code">
+                ${escapeHTML(machine.machine_code || 'Без коду')}
+            </div>
+
+            <div class="machine-detail">
+                📍 <b>Адреса:</b>
+                ${escapeHTML(machine.address || 'Не вказана')}
+            </div>
+
+            <div class="machine-detail">
+                🏙️ <b>Місто:</b>
+                ${escapeHTML(machine.city || 'Не вказано')}
+            </div>
+
+            <div class="machine-detail">
+    💦 <b>Рівень води:</b>
+
+    ${
+        waterLevel !== null
+        ? `
+            <b>${waterLevel}%</b>
+
+            <div style="
+                height:12px;
+                background:#dbe5ed;
+                border-radius:20px;
+                overflow:hidden;
+                margin-top:10px;
+            ">
+                <div style="
+                    width:${waterLevel}%;
+                    height:100%;
+                    background:${waterColor};
+                    border-radius:20px;
+                    transition:width .3s;
+                "></div>
+            </div>
+        `
+        : 'Дані відсутні'
+    }
+</div>
+
+            <div class="machine-detail">
+                🕒 <b>Останній зв'язок:</b>
+                ${escapeHTML(lastSeenText)}
+            </div>
+
+            <button class="machine-close"
+                onclick="closeMachineInfo()">
+                Закрити
+            </button>
+
+        </div>
+    `;
+}
+selectedMachineCode = null;
+function closeMachineInfo() {
+    document.getElementById('info').innerHTML = `
+        <h3>Інформація про водомат</h3>
+        <p>Натисни на позначку на карті.</p>
+    `;
+}
+
+function escapeHTML(value) {
+    return String(value).replace(/[&<>"']/g, function(char) {
+        return {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#039;'
+        }[char];
+    });
+}
+
+function renderWaterMachines() {
+    machineMarkers.clearLayers();
+
+    waterMachines.forEach(machine => {
+        const lat = Number(machine.latitude);
+        const lng = Number(machine.longitude);
+
+        if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
+
+        const status = getMachineStatus(machine);
+        const statusInfo = getStatusInfo(status);
+
+        const marker = L.circleMarker([lat, lng], {
+            radius: 9,
+            color: '#ffffff',
+            weight: 2,
+            fillColor: statusInfo.color,
+            fillOpacity: 1
+        });
+
+        marker.bindTooltip(escapeHTML(machine.name || 'Водомат'));
+        marker.on('click', () => showMachineInfo(machine));
+        marker.addTo(machineMarkers);
+    });
+}
+
+// ====================================
+// ЗАВАНТАЖЕННЯ ВОДОМАТІВ З SUPABASE
+// ====================================
+async function loadWaterMachines() {
+    if (loadingMachines) return;
+    loadingMachines = true;
+
+    try {
+        const { data, error } = await aquaClient
+            .from('water_machines')
+            .select('*');
+
+        if (error) throw error;
+
+        waterMachines = data || [];
+renderWaterMachines();
+
+// Оновлюємо відкриту картку
+if (selectedMachineCode) {
+    const updatedMachine = waterMachines.find(
+        machine => machine.machine_code === selectedMachineCode
+    );
+
+    if (updatedMachine) {
+        showMachineInfo(updatedMachine);
+    } else {
+        closeMachineInfo();
+    }
+}
+        console.log('AquaMap: завантажено водоматів:', waterMachines.length);
+    } catch (error) {
+        console.error('Помилка завантаження водоматів:', error);
+        document.getElementById('info').innerHTML =
+            '<h3>Не вдалося завантажити водомати</h3><p>Перевір підключення до Supabase та політики доступу SELECT.</p>';
+    } finally {
+        loadingMachines = false;
+    }
+}
+
+// ====================================
+// ПОШУК АДРЕСИ ТА ВОДОМАТІВ У РАДІУСІ 5 КМ
+// ====================================
+function calculateDistanceKm(lat1, lon1, lat2, lon2) {
+    const earthRadius = 6371;
+    const toRadians = value => value * Math.PI / 180;
+
+    const dLat = toRadians(lat2 - lat1);
+    const dLon = toRadians(lon2 - lon1);
+
+    const a =
+        Math.sin(dLat / 2) ** 2 +
+        Math.cos(toRadians(lat1)) *
+        Math.cos(toRadians(lat2)) *
+        Math.sin(dLon / 2) ** 2;
+
+    return 2 * earthRadius * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+async function findWaterMachines() {
+    const address = document.getElementById('userAddress').value.trim();
+    const results = document.getElementById('searchResults');
+
+    if (!address) {
+        results.innerHTML = '<p>Спочатку введи адресу.</p>';
+        return;
+    }
+
+    results.innerHTML = '<p>Шукаю адресу...</p>';
+    searchLayer.clearLayers();
+
+    try {
+        const url = 'https://photon.komoot.io/api/?limit=1&lang=uk&q=' + encodeURIComponent(address);
+        const response = await fetch(url);
+
+        if (!response.ok) throw new Error('Не вдалося виконати пошук адреси.');
+
+        const geocoding = await response.json();
+        if (!geocoding.features || geocoding.features.length === 0) {
+            results.innerHTML = '<p>Адресу не знайдено. Спробуй уточнити її.</p>';
+            return;
+        }
+
+        const coordinates = geocoding.features[0].geometry.coordinates;
+        const userLng = Number(coordinates[0]);
+        const userLat = Number(coordinates[1]);
+
+        const nearby = waterMachines
+            .map(machine => {
+                const lat = Number(machine.latitude);
+                const lng = Number(machine.longitude);
+
+                if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+
+                return {
+                    machine,
+                    distance: calculateDistanceKm(userLat, userLng, lat, lng)
+                };
+            })
+            .filter(item => item && item.distance <= 5)
+            .sort((a, b) => a.distance - b.distance);
+
+        L.circle([userLat, userLng], {
+            radius: 5000,
+            color: '#087cc1',
+            fillColor: '#38bdf8',
+            fillOpacity: 0.08
+        }).addTo(searchLayer);
+
+        L.marker([userLat, userLng])
+            .bindPopup('Вказана адреса')
+            .addTo(searchLayer);
+
+        nearby.forEach(item => {
+            const machine = item.machine;
+            const lat = Number(machine.latitude);
+            const lng = Number(machine.longitude);
+            const statusInfo = getStatusInfo(getMachineStatus(machine));
+
+            L.circleMarker([lat, lng], {
+                radius: 10,
+                color: '#ffffff',
+                weight: 2,
+                fillColor: statusInfo.color,
+                fillOpacity: 1
+            })
+            .bindPopup(escapeHTML(machine.name || 'Водомат'))
+            .addTo(searchLayer);
+        });
+
+        map.setView([userLat, userLng], 13);
+
+        if (nearby.length === 0) {
+            results.innerHTML = '<p>У радіусі 5 км водоматів не знайдено.</p>';
+            return;
+        }
+
+        results.innerHTML = `<h4>Знайдено водоматів: ${nearby.length}</h4>` +
+            nearby.map((item, index) => {
+                const machine = item.machine;
+                const statusInfo = getStatusInfo(getMachineStatus(machine));
+
+                return `
+                    <div class="machine-result">
+                        <b>${index + 1}. ${escapeHTML(machine.name || 'Водомат')}</b>
+                        <div>${escapeHTML(machine.address || machine.city || 'Адреса не вказана')}</div>
+                        <div>Відстань: ${item.distance.toFixed(2)} км</div>
+                        <div>Статус: <b style="color:${statusInfo.color}">${statusInfo.label}</b></div>
+                        <button onclick="focusMachine(${Number(machine.latitude)}, ${Number(machine.longitude)}, ${waterMachines.indexOf(machine)})">
+    Показати на карті
+</button>
+                            Показати на карті
+                        </button>
+                    </div>
+                `;
+            }).join('');
+
+    } catch (error) {
+        console.error('Помилка пошуку:', error);
+        results.innerHTML = '<p>Сталася помилка під час пошуку. Спробуй ще раз.</p>';
+    }
+}
+
+function focusMachine(lat, lng, machineIndex) {
+    map.setView([lat, lng], 17);
+
+    if (
+        Number.isInteger(machineIndex) &&
+        waterMachines[machineIndex]
+    ) {
+        showMachineInfo(waterMachines[machineIndex]);
+    }
+}
+
+// ====================================
+// ТЕМА САЙТУ
+// ====================================
+function changeTheme() {
+    document.body.classList.toggle('dark');
+
+    const button = document.querySelector('.theme-button');
+    button.textContent = document.body.classList.contains('dark')
+        ? '☀️ Світла тема'
+        : '🌙 Змінити тему';
+}
+
+// ====================================
+// ЗАПУСК І АВТООНОВЛЕННЯ
+// ====================================
+loadWaterMachines();
+setInterval(loadWaterMachines, 30000);
+</script>
+<script>
+if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./sw.js")
+            .then(() => console.log("AquaMap Service Worker зареєстровано"))
+            .catch(error => console.error("Помилка Service Worker:", error));
+    });
+}
+</script>
+</body>
+</html>

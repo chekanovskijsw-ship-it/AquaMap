@@ -1,0 +1,854 @@
+
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AquaMap — Кабінет компанії</title>
+<script src="https://unpkg.com/lucide@latest"></script>
+
+<style>
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background: #f1f5f9;
+    color: #172033;
+    min-height: 100vh;
+}
+
+header {
+    background: linear-gradient(135deg, #0878d1, #0756a5);
+    color: white;
+    padding: 22px 7%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 3px 15px #0002;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.logo-icon {
+    width: 48px;
+    height: 48px;
+    background: white;
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #0878d1;
+}
+
+.logo-icon svg {
+    width: 30px;
+    height: 30px;
+}
+
+.logo h1 {
+    font-size: 27px;
+    letter-spacing: -1px;
+}
+
+.header-subtitle {
+    font-size: 14px;
+    opacity: .85;
+}
+
+main {
+    max-width: 1100px;
+    margin: 35px auto;
+    padding: 0 20px;
+}
+
+.panel {
+    background: white;
+    padding: 25px;
+    border-radius: 17px;
+    margin-bottom: 22px;
+    box-shadow: 0 4px 18px #0000000b;
+}
+
+.panel h2 {
+    margin-bottom: 18px;
+}
+
+#loginPanel {
+    max-width: 430px;
+    margin: 65px auto;
+}
+
+input {
+    width: 100%;
+    padding: 14px;
+    border: 1px solid #dce3eb;
+    border-radius: 9px;
+    margin-top: 13px;
+    font-size: 15px;
+    outline: none;
+}
+
+input:focus {
+    border-color: #0878d1;
+}
+
+button {
+    border: none;
+    background: #0878d1;
+    color: white;
+    padding: 13px 19px;
+    border-radius: 9px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+    transition: .2s;
+}
+
+button:hover {
+    filter: brightness(.92);
+    transform: translateY(-1px);
+}
+
+button:disabled {
+    opacity: .55;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.login-button {
+    width: 100%;
+    margin-top: 18px;
+}
+
+.hidden {
+    display: none !important;
+}
+
+.welcome {
+    margin-bottom: 24px;
+}
+
+.welcome h2 {
+    font-size: 27px;
+}
+
+.welcome p {
+    color: #718096;
+    margin-top: 7px;
+}
+
+.stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 17px;
+    margin-bottom: 22px;
+}
+
+.stat-card {
+    background: white;
+    padding: 22px;
+    border-radius: 15px;
+    box-shadow: 0 4px 18px #00000009;
+}
+
+.stat-card p {
+    color: #718096;
+    font-size: 14px;
+}
+
+.stat-card h2 {
+    font-size: 30px;
+    margin-top: 10px;
+}
+
+.blue { color: #0878d1; }
+.green { color: #16a05a; }
+.red { color: #dc4545; }
+
+.machine {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+    padding: 18px;
+    border: 1px solid #e5eaf0;
+    border-radius: 12px;
+    margin-top: 13px;
+}
+
+.machine-info h3 {
+    font-size: 17px;
+    margin-bottom: 7px;
+}
+
+.machine-info p {
+    font-size: 13px;
+    color: #7b8794;
+    margin-top: 5px;
+}
+
+.status {
+    font-size: 13px;
+    font-weight: bold;
+    padding: 9px 13px;
+    border-radius: 30px;
+    white-space: nowrap;
+}
+
+.status.available {
+    color: #13894c;
+    background: #e2f8ec;
+}
+
+.status.empty {
+    color: #ce3434;
+    background: #ffe8e8;
+}
+
+.status.unknown {
+    color: #777;
+    background: #eee;
+}
+
+.machine-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 12px;
+}
+
+.machine-controls {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.available-button {
+    background: #16a05a;
+}
+
+.empty-button {
+    background: #dc4545;
+}
+
+.actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+}
+
+.secondary {
+    background: #e8f2fc;
+    color: #0878d1;
+}
+
+.secondary:hover {
+    background: #d7eaff;
+}
+
+#message {
+    margin-top: 15px;
+    color: #d33;
+    font-size: 14px;
+}
+
+#dashboardMessage {
+    margin-top: 15px;
+    font-size: 14px;
+    color: #0878d1;
+}
+
+.empty-message {
+    color: #718096;
+    padding: 20px 0;
+}
+
+footer {
+    text-align: center;
+    color: #8b96a5;
+    padding: 30px;
+    font-size: 13px;
+}
+
+@media(max-width: 650px) {
+    header {
+        padding: 17px 20px;
+    }
+
+    .header-subtitle {
+        display: none;
+    }
+
+    .stats {
+        grid-template-columns: 1fr;
+    }
+
+    .machine {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .machine-right {
+        align-items: flex-start;
+        width: 100%;
+    }
+
+    .machine-controls {
+        justify-content: flex-start;
+    }
+
+    .welcome h2 {
+        font-size: 22px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <div class="logo">
+        <div class="logo-icon">
+            <i data-lucide="droplet"></i>
+        </div>
+        <h1>AquaMap</h1>
+    </div>
+
+    <div class="header-subtitle">
+        Кабінет компанії
+    </div>
+</header>
+
+<main>
+
+<section class="panel" id="loginPanel">
+    <h2>Вхід до кабінету</h2>
+
+    <p style="color:#718096;font-size:14px;">
+        Увійдіть до системи керування водоматами AquaMap
+    </p>
+
+    <input id="email" type="email" placeholder="Електронна пошта">
+    <input id="password" type="password" placeholder="Пароль">
+
+    <button class="login-button" id="loginButton">
+        Увійти
+    </button>
+
+    <p id="message"></p>
+</section>
+
+
+<section id="dashboard" class="hidden">
+
+    <div class="welcome">
+        <h2 id="companyName">Моя компанія</h2>
+        <p id="role">Особистий кабінет</p>
+    </div>
+
+    <div class="stats">
+
+        <div class="stat-card">
+            <p>Усього водоматів</p>
+            <h2 class="blue" id="totalCount">0</h2>
+        </div>
+
+        <div class="stat-card">
+            <p>Вода є</p>
+            <h2 class="green" id="availableCount">0</h2>
+        </div>
+
+        <div class="stat-card">
+            <p>Води немає</p>
+            <h2 class="red" id="emptyCount">0</h2>
+        </div>
+
+    </div>
+
+    <div class="panel">
+
+        <h2>Мої водомати 💧</h2>
+
+        <div id="machines">Завантаження...</div>
+
+        <p id="dashboardMessage"></p>
+
+        <div class="actions">
+
+            <button id="refreshButton">
+                <i data-lucide="refresh-cw"></i>
+                Оновити
+            </button>
+
+            <button class="secondary" id="logoutButton">
+                <i data-lucide="log-out"></i>
+                Вийти
+            </button>
+
+        </div>
+    </div>
+
+</section>
+
+</main>
+
+<footer>
+    AquaMap © 2026 — Карта водоматів України
+</footer>
+
+
+<script type="module">
+
+import { createClient } from
+"https://esm.sh/@supabase/supabase-js@2";
+
+
+const SUPABASE_URL =
+"https://cxaguswaaaitgsapmdqf.supabase.co";
+
+const SUPABASE_KEY =
+"sb_publishable_PvS6ATQj8DDubQkBBu5Pjg_UNulBubZ";
+
+
+const supabase = createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+);
+
+
+const loginPanel = document.getElementById("loginPanel");
+const dashboard = document.getElementById("dashboard");
+const message = document.getElementById("message");
+const dashboardMessage = document.getElementById("dashboardMessage");
+
+let currentCompanyId = null;
+
+
+// LOGIN
+
+async function login() {
+
+    message.textContent = "";
+
+    const email =
+        document.getElementById("email").value.trim();
+
+    const password =
+        document.getElementById("password").value;
+
+    if (!email || !password) {
+        message.textContent =
+            "Введи електронну пошту та пароль.";
+        return;
+    }
+
+    const button = document.getElementById("loginButton");
+    button.disabled = true;
+    button.textContent = "Вхід...";
+
+    try {
+
+        const { error } =
+            await supabase.auth.signInWithPassword({
+                email,
+                password
+            });
+
+        if (error) {
+            message.textContent = error.message;
+            return;
+        }
+
+        await loadDashboard();
+
+    } catch (error) {
+        message.textContent = error.message;
+    } finally {
+        button.disabled = false;
+        button.textContent = "Увійти";
+    }
+}
+
+
+// LOAD DASHBOARD
+
+async function loadDashboard() {
+
+    const { data: { user }, error: userError } =
+        await supabase.auth.getUser();
+
+    if (userError || !user) {
+        loginPanel.classList.remove("hidden");
+        dashboard.classList.add("hidden");
+        return;
+    }
+
+    const { data: membership, error } =
+        await supabase
+            .from("company_members")
+            .select("company_id, role")
+            .eq("user_id", user.id)
+            .limit(1)
+            .maybeSingle();
+
+    if (error) {
+        message.textContent = error.message;
+        return;
+    }
+
+    if (!membership) {
+        loginPanel.classList.add("hidden");
+        dashboard.classList.remove("hidden");
+
+        document.getElementById("companyName").textContent =
+            "Компанію не знайдено";
+
+        document.getElementById("machines").textContent =
+            "Твій обліковий запис ще не доданий до компанії.";
+
+        return;
+    }
+
+    currentCompanyId = membership.company_id;
+
+    const { data: company, error: companyError } =
+        await supabase
+            .from("companies")
+            .select("name")
+            .eq("id", currentCompanyId)
+            .single();
+
+    if (companyError) {
+        message.textContent = companyError.message;
+        return;
+    }
+
+    loginPanel.classList.add("hidden");
+    dashboard.classList.remove("hidden");
+
+    document.getElementById("companyName").textContent =
+        company.name;
+
+    document.getElementById("role").textContent =
+        "Роль: " + membership.role;
+
+    await loadMachines();
+
+    lucide.createIcons();
+}
+
+
+// LOAD MACHINES
+
+async function loadMachines() {
+
+    const container = document.getElementById("machines");
+
+    container.textContent = "Завантаження...";
+
+    const { data, error } =
+        await supabase
+            .from("water_machines")
+            .select("machine_code, status, last_seen_at, water_level")
+            .eq("company_id", currentCompanyId)
+            .order("machine_code");
+
+    if (error) {
+        container.textContent =
+            "Помилка завантаження: " + error.message;
+        return;
+    }
+
+    if (!data || data.length === 0) {
+
+        container.innerHTML =
+            '<p class="empty-message">У компанії поки немає водоматів.</p>';
+
+        updateStats([]);
+        return;
+    }
+
+    updateStats(data);
+
+    container.innerHTML = "";
+
+    data.forEach(machine => {
+
+        const item = document.createElement("div");
+        item.className = "machine";
+
+        const info = document.createElement("div");
+        info.className = "machine-info";
+// Керування рівнем води
+const waterBox = document.createElement("div");
+waterBox.style.width = "100%";
+waterBox.style.width = "100%";
+waterBox.style.maxWidth = "100%";
+waterBox.style.flex = "0 0 100%";
+waterBox.style.minWidth = "0";
+waterBox.style.overflow = "hidden";
+waterBox.style.flexBasis = "100%";
+waterBox.style.minWidth = "0";
+waterBox.style.boxSizing = "border-box";
+waterBox.style.marginTop = "12px";
+
+const waterTitle = document.createElement("p");
+waterTitle.textContent = "💧 Рівень води: " +
+    (machine.water_level ?? 0) + "%";
+
+waterTitle.style.fontWeight = "bold";
+waterTitle.style.marginBottom = "8px";
+
+const waterSlider = document.createElement("input");
+waterSlider.type = "range";
+waterSlider.min = "0";
+waterSlider.max = "100";
+waterSlider.step = "1";
+waterSlider.value = Math.max(0, Math.min(100,
+    Number(machine.water_level) || 0
+));
+waterSlider.style.width = "100%";
+waterSlider.style.maxWidth = "100%";
+waterSlider.style.minWidth = "0";
+waterSlider.style.display = "block";
+waterSlider.style.boxSizing = "border-box";
+waterSlider.style.padding = "0";
+waterSlider.style.margin = "0";
+waterSlider.style.border = "0";
+waterSlider.style.cursor = "pointer";
+
+waterSlider.addEventListener("input", () => {
+    waterTitle.textContent =
+        "💧 Рівень води: " + waterSlider.value + "%";
+});
+
+const saveWaterButton = document.createElement("button");
+saveWaterButton.textContent = "Зберегти рівень";
+saveWaterButton.style.marginTop = "10px";
+
+saveWaterButton.addEventListener("click", () => {
+    updateWaterLevel(
+        machine.machine_code,
+        Number(waterSlider.value),
+        saveWaterButton
+    );
+});
+
+waterBox.append(waterTitle, waterSlider, saveWaterButton);
+        const name = document.createElement("h3");
+        name.textContent = "Водомат " + machine.machine_code;
+
+        const code = document.createElement("p");
+        code.textContent = "Код: " + machine.machine_code;
+
+        const updated = document.createElement("p");
+
+        updated.textContent = machine.last_seen_at
+            ? "Останній сигнал: " +
+              new Date(machine.last_seen_at).toLocaleString("uk-UA")
+            : "Дані ще не надходили";
+
+        info.append(name, code, updated);
+
+        const right = document.createElement("div");
+        right.className = "machine-right";
+
+        const status = document.createElement("span");
+
+        if (machine.status === "available") {
+            status.className = "status available";
+            status.textContent = "🟢 Вода є";
+        } else if (machine.status === "empty") {
+            status.className = "status empty";
+            status.textContent = "🔴 Води немає";
+        } else {
+            status.className = "status unknown";
+            status.textContent = "⚪ Невідомо";
+        }
+
+        const controls = document.createElement("div");
+        controls.className = "machine-controls";
+
+        const availableButton = document.createElement("button");
+        availableButton.className = "available-button";
+        availableButton.textContent = "🟢 Є вода";
+
+        availableButton.addEventListener("click", () => {
+            changeStatus(machine.machine_code, "available", availableButton, emptyButton);
+        });
+
+        const emptyButton = document.createElement("button");
+        emptyButton.className = "empty-button";
+        emptyButton.textContent = "🔴 Немає води";
+
+        emptyButton.addEventListener("click", () => {
+            changeStatus(machine.machine_code, "empty", availableButton, emptyButton);
+        });
+
+        controls.append(availableButton, emptyButton);
+        right.append(status, controls);
+
+       item.append(info, right, waterBox);
+        container.appendChild(item);
+
+    });
+
+    lucide.createIcons();
+}
+
+
+// CHANGE STATUS
+
+async function changeStatus(machineCode, newStatus, button1, button2) {
+
+    dashboardMessage.style.color = "#0878d1";
+    dashboardMessage.textContent = "Зберігаємо зміни...";
+
+    button1.disabled = true;
+    button2.disabled = true;
+
+    try {
+
+        const { data, error } =
+            await supabase
+                .from("water_machines")
+                .update({
+                    status: newStatus
+                })
+                .eq("machine_code", machineCode)
+                .eq("company_id", currentCompanyId)
+                .select("machine_code");
+
+        if (error) {
+            throw error;
+        }
+
+        if (!data || data.length === 0) {
+            throw new Error(
+                "Не вдалося змінити статус. Перевір дозволи компанії."
+            );
+        }
+
+        dashboardMessage.style.color = "#16a05a";
+        dashboardMessage.textContent =
+            "Статус водомата " + machineCode + " успішно змінено!";
+
+        await loadMachines();
+
+    } catch (error) {
+
+        dashboardMessage.style.color = "#dc4545";
+        dashboardMessage.textContent =
+            "Помилка: " + error.message;
+
+    } finally {
+
+        button1.disabled = false;
+        button2.disabled = false;
+
+    }
+}
+// CHANGE WATER LEVEL
+
+async function updateWaterLevel(machineCode, level, button) {
+
+    button.disabled = true;
+    dashboardMessage.style.color = "#0878d1";
+    dashboardMessage.textContent = "Зберігаємо рівень води...";
+
+    try {
+        const { data, error } = await supabase
+            .from("water_machines")
+            .update({
+    water_level: level,
+    status: level < 5 ? "empty" : "available"
+})
+            .eq("machine_code", machineCode)
+            .eq("company_id", currentCompanyId)
+            .select("machine_code");
+
+        if (error) throw error;
+
+        if (!data || data.length === 0) {
+            throw new Error("Не вдалося зберегти рівень води.");
+        }
+
+        dashboardMessage.style.color = "#16a05a";
+        dashboardMessage.textContent =
+            "Рівень води водомата " + machineCode +
+            " збережено: " + level + "%";
+
+        await loadMachines();
+
+    } catch (error) {
+        dashboardMessage.style.color = "#dc4545";
+        dashboardMessage.textContent =
+            "Помилка: " + error.message;
+    } finally {
+        button.disabled = false;
+    }
+}
+
+// STATISTICS
+
+function updateStats(data) {
+
+    document.getElementById("totalCount").textContent =
+        data.length;
+
+    document.getElementById("availableCount").textContent =
+        data.filter(m => m.status === "available").length;
+
+    document.getElementById("emptyCount").textContent =
+        data.filter(m => m.status === "empty").length;
+}
+
+
+// BUTTONS
+
+document.getElementById("loginButton")
+    .addEventListener("click", login);
+
+document.getElementById("password")
+    .addEventListener("keydown", event => {
+        if (event.key === "Enter") login();
+    });
+
+document.getElementById("refreshButton")
+    .addEventListener("click", loadMachines);
+
+document.getElementById("logoutButton")
+    .addEventListener("click", async () => {
+
+        await supabase.auth.signOut();
+        location.reload();
+
+    });
+
+
+// INITIALIZATION
+
+const { data: { session } } =
+    await supabase.auth.getSession();
+
+if (session) {
+    await loadDashboard();
+}
+
+lucide.createIcons();
+
+</script>
+
+</body>
+</html>
